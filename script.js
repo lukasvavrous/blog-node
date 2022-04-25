@@ -91,17 +91,29 @@ app.post('/login', async (req, res) => {
 //     });
 // })
 
+app.put('/posts', async (req, res) => {
+
+    const PostModel = mongoose.model('Post', PostSchema, 'Posts');
+
+    var postInstance = new PostModel({        
+        author: req.body.author,
+        title: req.body.title,
+        content: req.body.content
+    });
+
+    let savePostResponse = await postInstance.save()
+
+    res.json(savePostResponse).status(200);
+})
+
 
 app.get('/posts', async (req, res) => {
 
-    var UserModel = mongoose.model('User', UserSchema, 'Users');    
+    const PostModel = mongoose.model('Post', PostSchema, 'Posts');
     
-    const query = await UserModel.find({})
-
-    console.log(query)
-
-    let results = getPosts();
-    res.end(JSON.stringify(results));
+    const query = await PostModel.find({})
+    
+    res.json(query)
 })
 
 app.get('/users', async (req, res) => {
@@ -109,46 +121,24 @@ app.get('/users', async (req, res) => {
 
     const query = await UserModel.find({})
 
-    console.log('/users', query)
+    console.log("sleep")
+    await sleep(1000);
+    console.log("end sleep")
 
     res.json(query)
+
+    console.log("sebd")
+
 });
 
 
-const getPosts = () =>{    
-    return [
-        {
-            "id": 0,
-            "title": "Prvni nadpis",
-            "content": "Obsah prvniho clanecku",
-            "author": "Jaroušek Z Trocnova"
-        },
-        {
-            "id": 1,
-            "title": "druhy nadpis",
-            "content": "Obsah prvniho clanecku",
-            "author": "Jaroušek Z Trocnova"
-        },              
-        {
-            "id": 2,
-            "title": "Prvni nadpis",
-            "content": "Obsah prvniho clanecku",
-            "author": "Jaroušek Z Trocnova"
-        },     
-        {
-            "id": 3,
-            "title": "3 nadpis",
-            "content": "Obsah prvniho clanecku",
-            "author": "Jaroušek Z Trocnova"
-        },     
-        {
-            "id": 4,
-            "title": "4546153 nadpis",
-            "content": "Obsah prvniho clanecku",
-            "author": "Jaroušek Z Trocnova"
-        }       
-    ]
-}
+
+function sleep(ms) {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
+  }
+
 
 app.listen(port, function () {
     console.log(`Listening at http://127.0.0.1:${port}`)    
