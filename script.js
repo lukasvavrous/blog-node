@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require("cors")
+const jwt = require('jsonwebtoken')
 
 const UserSchema = require('./Schemas/User');
 const PostSchema = require('./Schemas/Post');
@@ -63,57 +64,67 @@ app.post('/login', async (req, res) => {
     let name = req.body.name
     let password = req.body.password 
     
-    const query = await UserModel.find({name, password})
+    const query = await UserModel.findOne({name, password})           
 
-    res.json(query).status(200);
+    if(query){
+        jwt.sign({query}, 'secretkey', (err, token) => {
+            res.json({
+                token
+            })
+        })
+    }
+    else{
+        res.send(403);
+    }
+
 })
-
-// app.post('/posts', (req, res) => {
-//     var PostsModel = mongoose.model('Post', PostSchema);    
-
-//     var postInstance = new PostsModel({
-//         title: req.body.title,
-//         author: req.body.author,
-//         content: req.body.content
-//     }); 
-
-//     postInstance.save(function (err, post) {                
-//         if(err) console.log(err)
-
-
-//         if(!user){
-//             return res.status(409).json({ error: 'Name already used' });
-//         }
-
-//         console.log(user.name + " saved to Users collection.");                               
-
-//         res.status(200).send("Ok")
-//     });
-// })
 
 app.put('/posts', async (req, res) => {
 
     const PostModel = mongoose.model('Post', PostSchema, 'Posts');
 
+    console.log(req.body.author)
+
     var postInstance = new PostModel({        
         author: req.body.author,
         title: req.body.title,
         content: req.body.content
-    });
-
+    });    
+    
     let savePostResponse = await postInstance.save()
 
     res.json(savePostResponse).status(200);
 })
 
+app.post('testos', tokenPermitOnly, (req, res) => {
+    console.log()
+})
 
-app.get('/posts', async (req, res) => {
+
+app.get('/posts', parseToken, async (req, res) => {
+
+    console.log(req.token)
 
     const PostModel = mongoose.model('Post', PostSchema, 'Posts');
     
     const query = await PostModel.find({})
     
     res.json(query)
+})
+
+app.post('/updatePost', async (req, res) => {    
+    let id = req.body.id;
+    let content = req.body.content;
+
+    const PostModel = mongoose.model('Post', PostSchema, 'Posts');
+    
+    let type = (req.body.type == "title" ? "title" : "content");    
+
+    let query = { [type] : content};    
+
+    let result = await PostModel.findByIdAndUpdate(id, query, {new: true})
+
+    res.send(result)
 })
 
 app.get('/users', async (req, res) => {
@@ -126,18 +137,42 @@ app.get('/users', async (req, res) => {
     console.log("end sleep")
 
     res.json(query)
-
-    console.log("sebd")
-
 });
-
-
 
 function sleep(ms) {
     return new Promise((resolve) => {
       setTimeout(resolve, ms);
     });
-  }
+}
+
+function tokenPermitOnly(req, res, next){
+    const bearerHeader = req.headers['authorization'];
+
+    if(typeof bearerHeader !== 'undefined'){
+        const bearer = bearerHeader.split(' ');
+        const bearerToken = bearer[1];
+        req.token = bearerToken;
+        next()
+    }
+    else{
+        res.sendStatus(403);
+    }
+}
+
+function parseToken(req, res, next){    
+    const bearerHeader = req.headers['authorization'];
+
+    if(typeof bearerHeader !== 'undefined'){
+        const bearer = bearerHeader.split(' ');
+        const bearerToken = bearer[1];
+        req.token = bearerToken;
+        next()
+    }
+    else{
+        next();
+    }
+}
+
 
 
 app.listen(port, function () {
