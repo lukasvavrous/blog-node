@@ -24,13 +24,7 @@ db.once('open', () =>  console.log("Connection Successful!"));
 
 app.use(cors())
 app.use(bodyParser.json())
-
-app.use((req, res, next) => {
-    console.log("Middleware custom:",)
-
-    next()
-})
-
+  
 app.get('/', (req, res) => {
     res.send("Ok").status(200);
 })
@@ -163,17 +157,18 @@ function parseToken(req, res, next){
     const bearerHeader = req.headers['authorization'];
 
     if(typeof bearerHeader !== 'undefined'){
+        console.log("bearer detected")
         const bearer = bearerHeader.split(' ');
         const bearerToken = bearer[1];
         req.token = bearerToken;
         next()
     }
     else{
+        console.log("bearer no-detected")
+
         next();
     }
 }
-
-
 
 app.listen(port, function () {
     console.log(`Listening at http://127.0.0.1:${port}`)    
