@@ -106,6 +106,16 @@ app.get('/posts', parseToken, async (req, res) => {
     res.json(query)
 })
 
+app.get('/posts/:name', parseToken, async (req, res) => {
+    let name = req.params['name']
+
+    const PostModel = mongoose.model('Post', PostSchema, 'Posts');
+    
+    const query = await PostModel.find({author: name})
+
+    res.json(query)
+})
+
 app.post('/updatePost', async (req, res) => {    
     let id = req.body.id;
     let content = req.body.content;
@@ -120,6 +130,18 @@ app.post('/updatePost', async (req, res) => {
 
     res.send(result)
 })
+
+
+app.post('/deletePost', async (req, res) => {    
+    let id = req.body.id;
+
+    const PostModel = mongoose.model('Post', PostSchema, 'Posts');        
+
+    let result = await PostModel.findByIdAndDelete(id)
+    
+    res.send(result)
+})
+
 
 app.get('/users', async (req, res) => {
     var UserModel = mongoose.model('User', UserSchema, 'Users');    
