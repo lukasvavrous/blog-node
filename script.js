@@ -8,7 +8,7 @@ const UserSchema = require('./Schemas/User');
 const PostSchema = require('./Schemas/Post');
 
 const app = express();
-const port = app.port || 5000;
+const port = process.env.PORT || 5000;
 
 const atlasDb = 'mongodb+srv://adminuser:adminuser@cluster0.4y9pc.mongodb.net/?retryWrites=true&w=majority'
 const localDb = 'mongodb://localhost:27017/BlogosDb'
@@ -187,6 +187,6 @@ function parseToken(req, res, next){
     }
 }
 
-app.listen(port, function () {
+app.listen(port, function () {    
     console.log(`Listening at http://127.0.0.1:${port}`)    
 });
