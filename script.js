@@ -10,7 +10,10 @@ const PostSchema = require('./Schemas/Post');
 const app = express();
 const port = app.port || 5000;
 
-mongoose.connect('mongodb://localhost:27017/BlogosDb', {
+const atlasDb = 'mongodb+srv://adminuser:adminuser@cluster0.4y9pc.mongodb.net/?retryWrites=true&w=majority'
+const localDb = 'mongodb://localhost:27017/BlogosDb'
+
+mongoose.connect(atlasDb, {
     useNewUrlParser: true,    
     autoIndex: true,
     useUnifiedTopology: true
@@ -74,7 +77,6 @@ app.post('/login', async (req, res) => {
 })
 
 app.put('/posts', async (req, res) => {
-
     const PostModel = mongoose.model('Post', PostSchema, 'Posts');
 
     console.log(req.body.author)
@@ -89,11 +91,6 @@ app.put('/posts', async (req, res) => {
 
     res.json(savePostResponse).status(200);
 })
-
-app.post('testos', tokenPermitOnly, (req, res) => {
-    console.log()
-})
-
 
 app.get('/posts', parseToken, async (req, res) => {
 
@@ -131,7 +128,6 @@ app.post('/updatePost', async (req, res) => {
     res.send(result)
 })
 
-
 app.post('/deletePost', async (req, res) => {    
     let id = req.body.id;
 
@@ -141,7 +137,6 @@ app.post('/deletePost', async (req, res) => {
     
     res.send(result)
 })
-
 
 app.get('/users', async (req, res) => {
     var UserModel = mongoose.model('User', UserSchema, 'Users');    
