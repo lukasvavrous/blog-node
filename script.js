@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require("cors")
 const jwt = require('jsonwebtoken')
+const bcrypt = require("bcrypt")
 
 const UserSchema = require('./Schemas/User');
 const PostSchema = require('./Schemas/Post');
@@ -33,17 +34,20 @@ app.get('/', (req, res) => {
 })
 
 app.post('/register', (req, res) => {
-    var UserModel = mongoose.model('User', UserSchema, 'Users');    
+    var UserModel = mongoose.model('User', UserSchema, 'Users');        
+    
+    let _pass = bcrypt.hashSync(req.body.password, 10);
+
+    console.log(_pass)
 
     var userInstance = new UserModel({
         name: req.body.name,
-        password: req.body.password,
+        password: _pass,
         email: req.body.email
     }); 
 
     userInstance.save(function (err, user) {                
         if(err) console.log(err)
-
 
         if(!user){
             return res.status(409).json({ error: 'Name already used' });
@@ -61,9 +65,11 @@ app.post('/login', async (req, res) => {
     let name = req.body.name
     let password = req.body.password 
     
-    const query = await UserModel.findOne({name, password})           
+    const query = await UserModel.findOne({name})           
 
-    if(query){
+    let isRight = await bcrypt.compare(password, query.password);
+
+    if(query && isRight){
         jwt.sign({query}, 'secretkey', (err, token) => {
             res.json({
                 token
@@ -73,7 +79,6 @@ app.post('/login', async (req, res) => {
     else{
         res.send(403);
     }
-
 })
 
 app.put('/posts', async (req, res) => {
@@ -141,7 +146,9 @@ app.post('/deletePost', async (req, res) => {
 app.get('/users', async (req, res) => {
     var UserModel = mongoose.model('User', UserSchema, 'Users');    
 
-    const query = await UserModel.find({})
+    const query = await UserModel.find({}, 'name createdAt')
+
+    console.log(query)
 
     console.log("sleep")
     await sleep(1000);
